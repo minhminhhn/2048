@@ -2,7 +2,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <ctime>
-//#include "SDL_until.h";
+
 using namespace std;
 const int SCREEN_WIDTH = 523;
 const int SCREEN_HEIGHT = 650;
@@ -89,6 +89,7 @@ void LoadMedia(int ob,int x,int y,SDL_Renderer *renderer)
 
 void* print(int **a)
 {
+    //system("cls");
     SDL_RenderClear(renderer);
     LoadMedia(0,0,0,renderer);
     for(int i=0; i<4; i++){
@@ -119,23 +120,7 @@ void* random(int **a)
     }
 }
 
-bool checkLeft(int **a)
-{
-    int x = 0,k=0 ;
-    for(int i=0; i<4; i++){
-        for(int j=0;j<4;j++)
-        {
-            if(a[i][j]==0)
-            {
-                k=1;
-            }
-        }
-        if(k=1) return true;
-    }
-    return false;
-}
-
-void rushUp(int **&a) {
+void rushUp(int **&a , int &n) {
 	for (int i = 1; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
 			if (a[i][j] != 0) {
@@ -143,6 +128,7 @@ void rushUp(int **&a) {
 					if (a[k - 1][j] == 0) {
 						a[k - 1][j] = a[k][j];
 						a[k][j] = 0;
+						n++;
 					}
 				}
 			}
@@ -151,7 +137,8 @@ void rushUp(int **&a) {
 }
 
 void moveUp(int **&a) {
-	rushUp(a);
+    int n=0;
+	rushUp(a,n);
 
 	for (int i = 1; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
@@ -160,18 +147,21 @@ void moveUp(int **&a) {
 					a[i - 1][j]++;
 					//score += a[i - 1][j];
 					a[i][j] = 0;
+					n++;
 
 				}
 			}
 		}
 	}
 
-	rushUp(a);
+	rushUp(a,n);
+	if (n>0){
 	random(a);
+	}
 	print(a);
 }
 
-void rushDown(int **&a) {
+void rushDown(int **&a, int &n) {
 	for (int i = 0; i < 4; i++) {
 		for (int j = 4 - 2; j >= 0; j--) {
 			if (a[j][i] != 0) {
@@ -179,6 +169,7 @@ void rushDown(int **&a) {
 					if (a[k + 1][i] == 0) {
 						a[k + 1][i] = a[k][i];
 						a[k][i] = 0;
+						n++;
 					}
 				}
 			}
@@ -187,8 +178,8 @@ void rushDown(int **&a) {
 }
 
 void moveDown(int **&a) {
-	rushDown(a);
-
+    int n=0;
+	rushDown(a,n);
 	for (int i = 0; i < 4; i++) {
 		for (int j = 4 - 2; j >= 0; j--) {
 			if (a[j][i] != 0) {
@@ -196,17 +187,20 @@ void moveDown(int **&a) {
 					a[j + 1][i] ++;
 					//score += a[j + 1][i];
 					a[j][i] = 0;
+					n++;
 				}
 			}
 		}
 	}
 
-	rushDown(a);
+	rushDown(a,n);
+	if (n>0){
 	random(a);
+	}
 	print(a);
 }
 
-void rushLeft(int**&a)
+void rushLeft(int**&a, int &n)
 {
     for(int i=0; i<4; i++){
             for (int j = 1; j < 4; j++) {
@@ -215,6 +209,7 @@ void rushLeft(int**&a)
                         if (a[i][k - 1] == 0) {
                             a[i][k - 1] = a[i][k];
                             a[i][k] = 0;
+                            n++;
                         }
                     }
                 }
@@ -224,7 +219,8 @@ void rushLeft(int**&a)
 
 void moveLeft(int**&a)
 {
-    rushLeft(a);
+    int n=0;
+    rushLeft(a,n);
        for(int i = 0; i < 4; i++) {
 		for (int j = 1; j < 4; j++) {
 			if (a[i][j] != 0) {
@@ -232,17 +228,20 @@ void moveLeft(int**&a)
 					a[i][j - 1] ++;
 					//score += a[i][j - 1];
 					a[i][j] = 0;
+					n++;
 				}
 			}
 		}
 	}
-	rushLeft(a);
+	rushLeft(a,n);
+	if (n>0){
 	random(a);
+	}
 	print(a);
 
 }
 
-void rushRight(int**&a)
+void rushRight(int**&a, int &n)
 {
    for (int i = 0; i < 4; i++) {
 		for (int j = 2; j >= 0; j--) {
@@ -251,6 +250,7 @@ void rushRight(int**&a)
 					if (a[i][k + 1] == 0) {
 						a[i][k + 1] = a[i][k];
 						a[i][k] = 0;
+						n++;
 					}
 				}
 			}
@@ -260,8 +260,8 @@ void rushRight(int**&a)
 
 void moveRight(int**&a)
 {
-    rushRight(a);
-
+    int n=0;
+    rushRight(a,n);
 	for (int i = 0; i < 4; i++) {
 		for (int j = 2; j >= 0; j--) {
 			if (a[i][j] != 0) {
@@ -269,13 +269,16 @@ void moveRight(int**&a)
 					a[i][j + 1] ++;
 					//score += a[i][j + 1];
 					a[i][j] = 0;
+					n++;
 				}
 			}
 		}
 	}
 
-	rushRight(a);
+	rushRight(a,n);
+	if (n>0){
 	random(a);
+	}
 	print(a);
 }
 
@@ -312,12 +315,10 @@ int main(int argc, char* argv[])
         if (e.type == SDL_KEYDOWN) {
         	switch (e.key.keysym.sym) {
         		case SDLK_LEFT:{
-        		    if(checkLeft(a)){
-        		    moveLeft(a);}
-        		    break;
+        		    moveLeft(a);
+                    break;
         		}
-        		case SDLK_RIGHT:
-        		    {
+        		case SDLK_RIGHT:{
                     moveRight(a);
         		    break;
         		}
@@ -329,11 +330,11 @@ int main(int argc, char* argv[])
             	    moveUp(a);
         		    break;
         		}
+        		case SDLK_x: return 0;
         		default: break;
-			}
-     }
-     SDL_RenderPresent(renderer);
-     }
+                }
+            }
+        }
     }
     quitSDL(window, renderer);
     return 0;
