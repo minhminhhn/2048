@@ -1,7 +1,9 @@
 #include <iostream>
 #include <SDL.h>
-#include <SDL_image.h>
 #include <ctime>
+#include <cmath>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
 
 using namespace std;
 const int SCREEN_WIDTH = 523;
@@ -15,11 +17,10 @@ void logSDLError(std::ostream& os,const std::string &msg, bool fatal);
 void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, int SCREEN_WIDTH, int SCREEN_HEIGHT, const string &WINDOW_TITLE );
 void quitSDL(SDL_Window* window, SDL_Renderer* renderer);
 void* random(int **a);
-void LoadMedia(int ob,int x,int y,SDL_Renderer *renderer);
-void* printvectorImg(int **a);
+void LoadMedia(int ob,int x,int y);
 
-void logSDLError(std::ostream& os,
-                 const std::string &msg, bool fatal)
+
+void logSDLError(std::ostream& os,const std::string &msg, bool fatal)
 {
     os << msg << " Error: " << SDL_GetError() << std::endl;
     if (fatal) {
@@ -45,7 +46,7 @@ void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, int SCREEN_WIDTH, int
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
     SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
-    surface[0] = IMG_Load("background.png");
+    surface[0] = IMG_Load("nnnnn.png");
     texture[0]= SDL_CreateTextureFromSurface(renderer,surface[0]);
     surface[1] = IMG_Load("2.png");
 	texture[1] = SDL_CreateTextureFromSurface( renderer, surface[1] );
@@ -72,6 +73,19 @@ void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, int SCREEN_WIDTH, int
 	surface[12] = IMG_Load("4096.png");
 	texture[12] = SDL_CreateTextureFromSurface( renderer, surface[12] );
 	surface[13] = IMG_Load("8192.png");
+	texture[13] = SDL_CreateTextureFromSurface( renderer, surface[13] );
+	surface[14] = IMG_Load("start.png");
+	texture[14] = SDL_CreateTextureFromSurface( renderer, surface[14] );
+	surface[15] = IMG_Load("start1.png");
+	texture[15] = SDL_CreateTextureFromSurface( renderer, surface[15] );
+	surface[16] = IMG_Load("start2.png");
+	texture[16] = SDL_CreateTextureFromSurface( renderer, surface[16] );
+	surface[17] = IMG_Load("start3.png");
+	texture[17] = SDL_CreateTextureFromSurface( renderer, surface[17] );
+	surface[18] = IMG_Load("nnnnn1.png");
+	texture[18] = SDL_CreateTextureFromSurface( renderer, surface[18] );
+	surface[19] = IMG_Load("nnnnn2.png");
+	texture[19] = SDL_CreateTextureFromSurface( renderer, surface[19] );
 }
 
 void quitSDL(SDL_Window* window, SDL_Renderer* renderer)
@@ -81,38 +95,47 @@ void quitSDL(SDL_Window* window, SDL_Renderer* renderer)
 	SDL_Quit();
 }
 
-void LoadMedia(int ob,int x,int y,SDL_Renderer *renderer)
+void LoadMedia(int ob,int x,int y)
 {
     SDL_Rect dest={x,y,surface[ob]->w,surface[ob]->h};
     SDL_RenderCopy(renderer,texture[ob],NULL,&dest);
 }
-
+int luythua(int &a)
+{
+    int n=0;
+    while (a>1)
+    {
+        a/=2;
+        n++;
+    }
+    return n;
+}
 void* print(int **a)
 {
-    //system("cls");
     SDL_RenderClear(renderer);
-    LoadMedia(0,0,0,renderer);
+    LoadMedia(0,0,0);
+    //LoadMedia(13,115,303);
+    //LoadMedia(14,115,389);
+    //LoadMedia(15,115,475);
     for(int i=0; i<4; i++){
         for(int j=0; j<4; j++){
               cout << a[i][j] << ' ';
-              if (a[i][j]!=0) LoadMedia(a[i][j],j*111+48,i*111+192,renderer);
+              if (a[i][j]!=0) LoadMedia(a[i][j],j*111+48,i*111+192);
         }
         cout << endl;
     }
-    cout << endl;
+
+
     SDL_RenderPresent(renderer);
 }
 
 void* random(int **a)
 {
-    int n= rand() % 2 + 1;
-    int x, y;
-
-
+    int n=1;
     while(n>0)
     {
-    x= rand() % 4;
-    y= rand() % 4;
+    int x= rand() % 4;
+    int y= rand() % 4;
     if(a[x][y]==0) {
         a[x][y]=1;
         n--;
@@ -136,7 +159,7 @@ void rushUp(int **&a , int &n) {
 	}
 }
 
-void moveUp(int **&a) {
+void moveUp(int **&a,int &score) {
     int n=0;
 	rushUp(a,n);
 
@@ -145,7 +168,7 @@ void moveUp(int **&a) {
 			if (a[i][j] != 0) {
 				if (a[i - 1][j] == a[i][j]) {
 					a[i - 1][j]++;
-					//score += a[i - 1][j];
+					score += a[i - 1][j]; //pow(2,a[i - 1][j]);
 					a[i][j] = 0;
 					n++;
 
@@ -157,8 +180,9 @@ void moveUp(int **&a) {
 	rushUp(a,n);
 	if (n>0){
 	random(a);
+    print(a);
+    cout << "score = " << score << endl;
 	}
-	print(a);
 }
 
 void rushDown(int **&a, int &n) {
@@ -177,7 +201,7 @@ void rushDown(int **&a, int &n) {
 	}
 }
 
-void moveDown(int **&a) {
+void moveDown(int **&a,int &score) {
     int n=0;
 	rushDown(a,n);
 	for (int i = 0; i < 4; i++) {
@@ -185,7 +209,7 @@ void moveDown(int **&a) {
 			if (a[j][i] != 0) {
 				if (a[j][i] == a[j + 1][i]) {
 					a[j + 1][i] ++;
-					//score += a[j + 1][i];
+					score += a[i + 1][j]; //pow(2,a[i + 1][j]);
 					a[j][i] = 0;
 					n++;
 				}
@@ -196,8 +220,9 @@ void moveDown(int **&a) {
 	rushDown(a,n);
 	if (n>0){
 	random(a);
+    print(a);
+    cout << "score = " << score << endl;
 	}
-	print(a);
 }
 
 void rushLeft(int**&a, int &n)
@@ -217,7 +242,7 @@ void rushLeft(int**&a, int &n)
         }
 }
 
-void moveLeft(int**&a)
+void moveLeft(int**&a,int &score)
 {
     int n=0;
     rushLeft(a,n);
@@ -226,7 +251,7 @@ void moveLeft(int**&a)
 			if (a[i][j] != 0) {
 				if (a[i][j] == a[i][j - 1]) {
 					a[i][j - 1] ++;
-					//score += a[i][j - 1];
+					score += a[i][j - 1]; //pow(2,a[i][j - 1]);
 					a[i][j] = 0;
 					n++;
 				}
@@ -236,8 +261,9 @@ void moveLeft(int**&a)
 	rushLeft(a,n);
 	if (n>0){
 	random(a);
-	}
 	print(a);
+	cout << "score = " << score << endl;
+	}
 
 }
 
@@ -251,14 +277,14 @@ void rushRight(int**&a, int &n)
 						a[i][k + 1] = a[i][k];
 						a[i][k] = 0;
 						n++;
-					}
+                    }
 				}
 			}
 		}
 	}
 }
 
-void moveRight(int**&a)
+void moveRight(int**&a,int &score)
 {
     int n=0;
     rushRight(a,n);
@@ -267,7 +293,7 @@ void moveRight(int**&a)
 			if (a[i][j] != 0) {
 				if (a[i][j] == a[i][j + 1]) {
 					a[i][j + 1] ++;
-					//score += a[i][j + 1];
+					score += a[i][j + 1]; //pow(2,a[i][j + 1]);
 					a[i][j] = 0;
 					n++;
 				}
@@ -278,19 +304,150 @@ void moveRight(int**&a)
 	rushRight(a,n);
 	if (n>0){
 	random(a);
+    print(a);
+    cout << "score = " << score << endl;
 	}
-	print(a);
 }
-
-void start(int **&a)
+void mouse(SDL_Event e, int**&a)
 {
-    for(int i=0; i<2; i++)
+    int x, y;
+        if(e.type == SDL_MOUSEMOTION)
+        {
+            SDL_GetMouseState(&x,&y);
+            cout << x << ',' << y  << '\n';
+            if ( 317<=x && x<=454 && 94<=y && y<=127 )
+            {
+                LoadMedia(18,316,94);
+
+            }
+            else if  ( 317<=x && x<=454 && 133<=y && y<=167 )
+            {
+                LoadMedia(19,316,133);
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                        return;
+                }
+            }
+            else {
+                SDL_RenderClear(renderer);
+                LoadMedia(0,0,0);
+                for(int i=0; i<4; i++){
+                    for(int j=0; j<4; j++){
+                if (a[i][j]!=0) LoadMedia(a[i][j],j*111+48,i*111+192);
+                        }
+                }
+            }
+            SDL_RenderPresent(renderer);
+        }
+
+}
+void startgame(int **&a, SDL_Event e)
+{
+    for (int i=0; i<4; i++)
+        for (int j=0; j<4; j++) a[i][j]=0;
+    for(int i=0; i<3; i++)
     {
     int x = rand() % 2 + 1;
     int y = rand() % 2 + 1;
     a[x][y]=1;
     }
+    int score=0;
     print(a);
+      while(true)
+   {
+      while(SDL_PollEvent(&e)!=0)
+     {
+
+         if (e.type == SDL_QUIT) break; // neu quit thi dung
+            int x, y;
+//            if(e.type == SDL_MOUSEMOTION)
+//            {
+            SDL_GetMouseState(&x,&y);
+            //cout << x << ',' << y  << '\n';
+            if ( 317<=x && x<=454 && 94<=y && y<=127 )
+            {
+                LoadMedia(18,316,94);
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                        startgame(a,e);
+                        return;
+                }
+            }
+            else if  ( 317<=x && x<=454 && 133<=y && y<=167 )
+            {
+                LoadMedia(19,316,133);
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                        return;
+                }
+            }
+            else {
+                SDL_RenderClear(renderer);
+                LoadMedia(0,0,0);
+                for(int i=0; i<4; i++){
+                    for(int j=0; j<4; j++){
+                if (a[i][j]!=0) LoadMedia(a[i][j],j*111+48,i*111+192);
+                        }
+                }
+            }
+            SDL_RenderPresent(renderer);
+            //}
+        if (e.type == SDL_KEYDOWN) {
+        	switch (e.key.keysym.sym) {
+        		case SDLK_LEFT:{
+        		    moveLeft(a,score);
+                    break;
+        		}
+        		case SDLK_RIGHT:{
+                    moveRight(a,score);
+        		    break;
+        		}
+            	case SDLK_DOWN:{
+            	    moveDown(a,score);
+        		    break;
+        		}
+            	case SDLK_UP:{
+            	    moveUp(a,score);
+        		    break;
+        		}
+        		case SDLK_ESCAPE: return ;
+        		default: break;
+                }
+            }
+        }
+    }
+}
+void start(int **&a, SDL_Event e){
+    LoadMedia(14,0,0);
+    SDL_RenderPresent(renderer);
+    bool quit = false;
+    while (!quit)
+    {
+       while(SDL_PollEvent(&e)!=0){
+        int x, y;
+            SDL_GetMouseState(&x,&y);
+            cout << x << ',' << y  << '\n';
+            if ( 11<=x && x<=379 && 305<=y && y<=358){
+                LoadMedia(14,0,0);
+                LoadMedia(15,115,303);
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                        startgame(a,e);
+                        return;
+                }
+            }
+            else if (119<=x && x<=379 && 389<=y && y<=444){
+                LoadMedia(14,0,0);
+                LoadMedia(16,115,389);
+            }
+            else if (119<=x && x<=379 && 477<=y && y<=530){
+                LoadMedia(14,0,0);
+                LoadMedia(17,115,475);
+                if (e.type == SDL_MOUSEBUTTONDOWN) return;
+            }
+            else {
+                SDL_RenderClear(renderer);
+                LoadMedia(14,0,0);
+            }
+        SDL_RenderPresent(renderer);
+       }
+    }
 }
 
 int main(int argc, char* argv[])
@@ -301,41 +458,8 @@ int main(int argc, char* argv[])
     int** a= new int*[4];
     for(int i=0; i<4; i++)
         *(a+i)= new int[4];
-    for (int i=0; i<4; i++)
-        for (int j=0; j<4; j++) a[i][j]=0;
-    start(a);
     SDL_Event e;
-    int x=0, y=0;
-    while(true)
-    {
-     while(SDL_PollEvent(&e)!=0)
-     {
-
-         if (e.type == SDL_QUIT) break; // neu quit thi dung
-        if (e.type == SDL_KEYDOWN) {
-        	switch (e.key.keysym.sym) {
-        		case SDLK_LEFT:{
-        		    moveLeft(a);
-                    break;
-        		}
-        		case SDLK_RIGHT:{
-                    moveRight(a);
-        		    break;
-        		}
-            	case SDLK_DOWN:{
-            	    moveDown(a);
-        		    break;
-        		}
-            	case SDLK_UP:{
-            	    moveUp(a);
-        		    break;
-        		}
-        		case SDLK_x: return 0;
-        		default: break;
-                }
-            }
-        }
-    }
+    start(a,e);
     quitSDL(window, renderer);
     return 0;
 }
