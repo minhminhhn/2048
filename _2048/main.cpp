@@ -168,7 +168,7 @@ void moveUp(int **&a,int &score) {
 			if (a[i][j] != 0) {
 				if (a[i - 1][j] == a[i][j]) {
 					a[i - 1][j]++;
-					score += a[i - 1][j]; //pow(2,a[i - 1][j]);
+					score += pow(2,a[i - 1][j]);
 					a[i][j] = 0;
 					n++;
 
@@ -209,7 +209,7 @@ void moveDown(int **&a,int &score) {
 			if (a[j][i] != 0) {
 				if (a[j][i] == a[j + 1][i]) {
 					a[j + 1][i] ++;
-					score += a[i + 1][j]; //pow(2,a[i + 1][j]);
+					score += pow(2,a[j + 1][i]);
 					a[j][i] = 0;
 					n++;
 				}
@@ -251,7 +251,7 @@ void moveLeft(int**&a,int &score)
 			if (a[i][j] != 0) {
 				if (a[i][j] == a[i][j - 1]) {
 					a[i][j - 1] ++;
-					score += a[i][j - 1]; //pow(2,a[i][j - 1]);
+					score += pow(2,a[i][j - 1]);
 					a[i][j] = 0;
 					n++;
 				}
@@ -293,7 +293,7 @@ void moveRight(int**&a,int &score)
 			if (a[i][j] != 0) {
 				if (a[i][j] == a[i][j + 1]) {
 					a[i][j + 1] ++;
-					score += a[i][j + 1]; //pow(2,a[i][j + 1]);
+					score += pow(2,a[i][j + 1]);
 					a[i][j] = 0;
 					n++;
 				}
@@ -344,10 +344,10 @@ void startgame(int **&a, SDL_Event e)
 {
     for (int i=0; i<4; i++)
         for (int j=0; j<4; j++) a[i][j]=0;
-    for(int i=0; i<3; i++)
+    for(int i=0; i<2; i++)
     {
-    int x = rand() % 2 + 1;
-    int y = rand() % 2 + 1;
+    int x = rand() % 4;
+    int y = rand() % 4;
     a[x][y]=1;
     }
     int score=0;
