@@ -114,9 +114,6 @@ void* print(int **a)
 {
     SDL_RenderClear(renderer);
     LoadMedia(0,0,0);
-    //LoadMedia(13,115,303);
-    //LoadMedia(14,115,389);
-    //LoadMedia(15,115,475);
     for(int i=0; i<4; i++){
         for(int j=0; j<4; j++){
               cout << a[i][j] << ' ';
@@ -340,6 +337,18 @@ void mouse(SDL_Event e, int**&a)
         }
 
 }
+bool checklose (int**a){
+      for(int i=0; i<4; i++)
+          for (int j=0; j<4; j++)
+               if(a[i][j]==0) return true;
+       for(int i=0; i<4; i++)
+          for (int j=0; j<3; j++)
+               if(a[i][j]==a[i][j+1]) return true;
+       for(int i=0; i<4; i++)
+          for (int j=0; j<3; j++)
+               if(a[j][i]==a[j+1][i]) return true;
+       return flase;
+}
 void startgame(int **&a, SDL_Event e)
 {
     for (int i=0; i<4; i++)
@@ -352,7 +361,8 @@ void startgame(int **&a, SDL_Event e)
     }
     int score=0;
     print(a);
-      while(true)
+    bool quit=true;
+      while(quit==true)
    {
       while(SDL_PollEvent(&e)!=0)
      {
@@ -393,22 +403,22 @@ void startgame(int **&a, SDL_Event e)
         	switch (e.key.keysym.sym) {
         		case SDLK_LEFT:{
         		    moveLeft(a,score);
-                    break;
+                            break;
         		}
         		case SDLK_RIGHT:{
-                    moveRight(a,score);
+                            moveRight(a,score);
         		    break;
         		}
             	case SDLK_DOWN:{
-            	    moveDown(a,score);
+            	            moveDown(a,score);
         		    break;
         		}
             	case SDLK_UP:{
-            	    moveUp(a,score);
+            	            moveUp(a,score);
         		    break;
         		}
-        		case SDLK_ESCAPE: return ;
-        		default: break;
+        	case SDLK_ESCAPE: return ;
+        	default: break;
                 }
             }
         }
