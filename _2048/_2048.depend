@@ -1,7 +1,0 @@
-# depslib dependency file v1.0
-1617680324 source:c:\users\admin\documents\vted\_2048\main.cpp
-	<iostream>
-	<SDL.h>
-	<SDL_image.h>
-	<ctime>
-
