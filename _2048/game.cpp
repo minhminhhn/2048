@@ -102,8 +102,11 @@ void quitSDL()
 {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+	TTF_CloseFont( Font );
+	Mix_Quit();
+	TTF_Quit();
+	IMG_Quit();
 	SDL_Quit();
-}
 
 void loadscore(int score, int x, int y)
 {
