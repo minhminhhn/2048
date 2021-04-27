@@ -4,6 +4,7 @@
 #include <cmath>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <fstream>
 
 using namespace std;
 const int SCREEN_WIDTH = 523;
@@ -11,13 +12,18 @@ const int SCREEN_HEIGHT = 650;
 const string WINDOW_TITLE = "2048";
 SDL_Window* window;
 SDL_Renderer* renderer;
-SDL_Surface *surface[20];
-SDL_Texture *texture[20];
+SDL_Surface *surface[25];
+SDL_Texture *texture[25];
+TTF_Font *Font = NULL;
 void logSDLError(std::ostream& os,const std::string &msg, bool fatal);
 void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, int SCREEN_WIDTH, int SCREEN_HEIGHT, const string &WINDOW_TITLE );
 void quitSDL(SDL_Window* window, SDL_Renderer* renderer);
 void* random(int **a);
 void LoadMedia(int ob,int x,int y);
+void* print(int **a);
+void* random(int **a);
+void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
+bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
 
 
 void logSDLError(std::ostream& os,const std::string &msg, bool fatal)
@@ -43,6 +49,7 @@ void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, int SCREEN_WIDTH, int
                                               SDL_RENDERER_PRESENTVSYNC);
 
     if (renderer == nullptr) logSDLError(std::cout, "CreateRenderer", true);
+    if( TTF_Init() == -1 ) logSDLError(cout, TTF_GetError(), true );
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
     SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -74,18 +81,26 @@ void initSDL(SDL_Window* &window, SDL_Renderer* &renderer, int SCREEN_WIDTH, int
 	texture[12] = SDL_CreateTextureFromSurface( renderer, surface[12] );
 	surface[13] = IMG_Load("8192.png");
 	texture[13] = SDL_CreateTextureFromSurface( renderer, surface[13] );
-	surface[14] = IMG_Load("start.png");
+	surface[14] = IMG_Load("16384.png");
 	texture[14] = SDL_CreateTextureFromSurface( renderer, surface[14] );
-	surface[15] = IMG_Load("start1.png");
+	surface[15] = IMG_Load("32768.png");
 	texture[15] = SDL_CreateTextureFromSurface( renderer, surface[15] );
-	surface[16] = IMG_Load("start2.png");
+	surface[16] = IMG_Load("65536.png");
 	texture[16] = SDL_CreateTextureFromSurface( renderer, surface[16] );
-	surface[17] = IMG_Load("start3.png");
+	surface[17] = IMG_Load("start.png");
 	texture[17] = SDL_CreateTextureFromSurface( renderer, surface[17] );
-	surface[18] = IMG_Load("nnnnn1.png");
+	surface[18] = IMG_Load("start1.png");
 	texture[18] = SDL_CreateTextureFromSurface( renderer, surface[18] );
-	surface[19] = IMG_Load("nnnnn2.png");
+	surface[19] = IMG_Load("start2.png");
 	texture[19] = SDL_CreateTextureFromSurface( renderer, surface[19] );
+	surface[20] = IMG_Load("start3.png");
+	texture[20] = SDL_CreateTextureFromSurface( renderer, surface[20] );
+	surface[21] = IMG_Load("nnnnn1.png");
+	texture[21] = SDL_CreateTextureFromSurface( renderer, surface[21] );
+	surface[22] = IMG_Load("nnnnn2.png");
+	texture[22] = SDL_CreateTextureFromSurface( renderer, surface[22] );
+	surface[23] = IMG_Load("end.png");
+	texture[23] = SDL_CreateTextureFromSurface( renderer, surface[23] );
 }
 
 void quitSDL(SDL_Window* window, SDL_Renderer* renderer)
@@ -94,23 +109,26 @@ void quitSDL(SDL_Window* window, SDL_Renderer* renderer)
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 }
+void loadscore(int score, int x, int y)
+{
+    Font = TTF_OpenFont("Antonio-Bold.ttf",30);
+    SDL_Color textColor = {255, 255, 255, 255};
+    string s= to_string(score);
+    surface[24] = TTF_RenderText_Solid(Font, s.c_str() , textColor);
+    texture[24] = SDL_CreateTextureFromSurface(renderer, surface[24]);
+    //222,20
+    int _x = x+(129-surface[24]->w)/2;
+    int _y = y+(76-surface[24]->h)/2;
+    SDL_Rect dest={_x,_y,surface[24]->w,surface[24]->h};
+    SDL_RenderCopy(renderer,texture[24],NULL,&dest);
+}
 
 void LoadMedia(int ob,int x,int y)
 {
     SDL_Rect dest={x,y,surface[ob]->w,surface[ob]->h};
     SDL_RenderCopy(renderer,texture[ob],NULL,&dest);
 }
-int luythua(int &a)
-{
-    int n=0;
-    while (a>1)
-    {
-        a/=2;
-        n++;
-    }
-    return n;
-}
-void* print(int **a)
+void* print(int **a,const int score, int &highscore)
 {
     SDL_RenderClear(renderer);
     LoadMedia(0,0,0);
@@ -122,7 +140,11 @@ void* print(int **a)
         cout << endl;
     }
 
-
+    if(score>highscore) highscore=score;
+    loadscore(score ,285-55,25);
+    loadscore(highscore ,430-55,25);
+    cout << "score = " << score << endl;
+    cout << "high score = " << highscore << endl << endl;
     SDL_RenderPresent(renderer);
 }
 
@@ -156,10 +178,9 @@ void rushUp(int **&a , int &n) {
 	}
 }
 
-void moveUp(int **&a,int &score) {
+void moveUp(int **&a,int &score, int &highscore) {
     int n=0;
 	rushUp(a,n);
-
 	for (int i = 1; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
 			if (a[i][j] != 0) {
@@ -168,7 +189,6 @@ void moveUp(int **&a,int &score) {
 					score += pow(2,a[i - 1][j]);
 					a[i][j] = 0;
 					n++;
-
 				}
 			}
 		}
@@ -177,8 +197,7 @@ void moveUp(int **&a,int &score) {
 	rushUp(a,n);
 	if (n>0){
 	random(a);
-    print(a);
-    cout << "score = " << score << endl;
+    print(a,score,highscore);
 	}
 }
 
@@ -198,7 +217,7 @@ void rushDown(int **&a, int &n) {
 	}
 }
 
-void moveDown(int **&a,int &score) {
+void moveDown(int **&a,int &score, int &highscore) {
     int n=0;
 	rushDown(a,n);
 	for (int i = 0; i < 4; i++) {
@@ -217,8 +236,7 @@ void moveDown(int **&a,int &score) {
 	rushDown(a,n);
 	if (n>0){
 	random(a);
-    print(a);
-    cout << "score = " << score << endl;
+    print(a,score, highscore);
 	}
 }
 
@@ -239,7 +257,7 @@ void rushLeft(int**&a, int &n)
         }
 }
 
-void moveLeft(int**&a,int &score)
+void moveLeft(int**&a,int &score, int &highscore)
 {
     int n=0;
     rushLeft(a,n);
@@ -258,8 +276,7 @@ void moveLeft(int**&a,int &score)
 	rushLeft(a,n);
 	if (n>0){
 	random(a);
-	print(a);
-	cout << "score = " << score << endl;
+	print(a,score,highscore);
 	}
 
 }
@@ -281,7 +298,7 @@ void rushRight(int**&a, int &n)
 	}
 }
 
-void moveRight(int**&a,int &score)
+void moveRight(int**&a,int &score, int &highscore)
 {
     int n=0;
     rushRight(a,n);
@@ -290,7 +307,7 @@ void moveRight(int**&a,int &score)
 			if (a[i][j] != 0) {
 				if (a[i][j] == a[i][j + 1]) {
 					a[i][j + 1] ++;
-					score += pow(2,a[i][j + 1]);
+                    score += pow(2,a[i][j + 1]);
 					a[i][j] = 0;
 					n++;
 				}
@@ -301,89 +318,77 @@ void moveRight(int**&a,int &score)
 	rushRight(a,n);
 	if (n>0){
 	random(a);
-    print(a);
-    cout << "score = " << score << endl;
+    print(a,score,highscore);
 	}
 }
-void mouse(SDL_Event e, int**&a)
-{
-    int x, y;
-        if(e.type == SDL_MOUSEMOTION)
-        {
-            SDL_GetMouseState(&x,&y);
-            cout << x << ',' << y  << '\n';
-            if ( 317<=x && x<=454 && 94<=y && y<=127 )
-            {
-                LoadMedia(18,316,94);
 
-            }
-            else if  ( 317<=x && x<=454 && 133<=y && y<=167 )
-            {
-                LoadMedia(19,316,133);
-                if (e.type == SDL_MOUSEBUTTONDOWN) {
-                        return;
-                }
-            }
-            else {
-                SDL_RenderClear(renderer);
-                LoadMedia(0,0,0);
-                for(int i=0; i<4; i++){
-                    for(int j=0; j<4; j++){
-                if (a[i][j]!=0) LoadMedia(a[i][j],j*111+48,i*111+192);
-                        }
-                }
-            }
-            SDL_RenderPresent(renderer);
-        }
-
-}
-bool checklose (int**a){
-      for(int i=0; i<4; i++)
-          for (int j=0; j<4; j++)
-               if(a[i][j]==0) return true;
-       for(int i=0; i<4; i++)
-          for (int j=0; j<3; j++)
-               if(a[i][j]==a[i][j+1]) return true;
-       for(int i=0; i<4; i++)
-          for (int j=0; j<3; j++)
-               if(a[j][i]==a[j+1][i]) return true;
-       return flase;
-}
-void startgame(int **&a, SDL_Event e)
+bool checklose(int** a)
 {
+    for (int i=0; i<4; i++)
+        for (int j=0; j<4; j++)
+           if (a[i][j]==0) return true;
+    for (int i=0; i<4; i++)
+        for (int j=0; j<3; j++)
+            if (a[i][j]==a[i][j+1]) return true;
+    for (int i=0; i<4; i++)
+        for (int j=0; j<3; j++)
+            if (a[j][i]==a[j+1][i]) return true;
+    return false;
+}
+void outscore(int*&a, int score)
+{
+    if(score>a[4]) {
+        a[4]=score;
+        for(int i=0; i<5; i++)
+            for(int j=i; j<5; j++)
+                if (a[i]<a[j]) swap(a[i], a[j]);
+    }
+    ofstream outfile("highscore.txt");
+    for(int i=0; i<5; i++)
+        outfile << a[i] <<endl;
+}
+void startgame()
+{
+    int** a= new int*[4];
+    for(int i=0; i<4; i++)
+        *(a+i)= new int[4];
     for (int i=0; i<4; i++)
         for (int j=0; j<4; j++) a[i][j]=0;
     for(int i=0; i<2; i++)
     {
-    int x = rand() % 4;
-    int y = rand() % 4;
+    int x = rand() % 4 ;
+    int y = rand() % 4 ;
     a[x][y]=1;
     }
+    int* scoree= new int[5];
+    ifstream infile("highscore.txt");
+    for(int i=0; i<5; i++)
+        infile >> scoree[i];
+    int highscore=scoree[0];
+    SDL_Event e;
     int score=0;
-    print(a);
     bool quit=true;
-      while(quit==true)
-   {
+    print(a, score, highscore);
+    while(quit==true)
+    {
       while(SDL_PollEvent(&e)!=0)
      {
 
          if (e.type == SDL_QUIT) break; // neu quit thi dung
             int x, y;
-//            if(e.type == SDL_MOUSEMOTION)
-//            {
             SDL_GetMouseState(&x,&y);
             //cout << x << ',' << y  << '\n';
             if ( 317<=x && x<=454 && 94<=y && y<=127 )
             {
-                LoadMedia(18,316,94);
+                LoadMedia(21,316,94);
                 if (e.type == SDL_MOUSEBUTTONDOWN) {
-                        startgame(a,e);
+                        startgame();
                         return;
                 }
             }
             else if  ( 317<=x && x<=454 && 133<=y && y<=167 )
             {
-                LoadMedia(19,316,133);
+                LoadMedia(22,316,133);
                 if (e.type == SDL_MOUSEBUTTONDOWN) {
                         return;
                 }
@@ -391,6 +396,8 @@ void startgame(int **&a, SDL_Event e)
             else {
                 SDL_RenderClear(renderer);
                 LoadMedia(0,0,0);
+                loadscore(score ,285-55,25);
+                loadscore(highscore ,430-55,25);
                 for(int i=0; i<4; i++){
                     for(int j=0; j<4; j++){
                 if (a[i][j]!=0) LoadMedia(a[i][j],j*111+48,i*111+192);
@@ -398,34 +405,74 @@ void startgame(int **&a, SDL_Event e)
                 }
             }
             SDL_RenderPresent(renderer);
-            //}
+
         if (e.type == SDL_KEYDOWN) {
         	switch (e.key.keysym.sym) {
         		case SDLK_LEFT:{
-        		    moveLeft(a,score);
-                            break;
+        		    moveLeft(a,score,highscore);
+        		    quit=checklose(a);
+        		    if(!quit) {
+                    cout << "YOU LOSE" << endl;
+                    outscore(scoree, score);
+        		    }
+                    break;
         		}
         		case SDLK_RIGHT:{
-                            moveRight(a,score);
+                    moveRight(a,score,highscore);
+        		    quit=checklose(a);
+        		    if(!quit) {
+                    cout << "YOU LOSE" << endl;
+                        outscore(scoree, score);
+        		    }
         		    break;
         		}
             	case SDLK_DOWN:{
-            	            moveDown(a,score);
+            	    moveDown(a,score,highscore);
+        		    quit=checklose(a);
+        		    if(!quit) {
+                    cout << "YOU LOSE" << endl;
+                        outscore(scoree, score);
+        		    }
         		    break;
         		}
             	case SDLK_UP:{
-            	            moveUp(a,score);
+            	    moveUp(a,score,highscore);
+        		    quit=checklose(a);
+        		    if(!quit) {
+                    cout << "YOU LOSE" << endl;
+                        outscore(scoree, score);
+        		    }
         		    break;
         		}
-        	case SDLK_ESCAPE: return ;
-        	default: break;
+        		case SDLK_ESCAPE: return ;
+        		default: break;
                 }
             }
         }
     }
+    LoadMedia(23,65,81);
+    while(true){
+        while(SDL_PollEvent(&e)!=0)
+        {
+            int x, y;
+            SDL_GetMouseState(&x,&y);
+            SDL_RenderPresent(renderer);
+            if(197<=x && x<=324 && 325<=y && y<=378)
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                    startgame();
+                    return;
+                }
+            if(197<=x && x<=324 && 406<=y && y<=459)
+                if (e.type == SDL_MOUSEBUTTONDOWN) {
+                        return;
+                }
+        }
+    }
 }
-void start(int **&a, SDL_Event e){
-    LoadMedia(14,0,0);
+void start(){
+    initSDL(window, renderer, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
+    SDL_Event e;
+    LoadMedia(17,0,0);
     SDL_RenderPresent(renderer);
     bool quit = false;
     while (!quit)
@@ -434,26 +481,26 @@ void start(int **&a, SDL_Event e){
         int x, y;
             SDL_GetMouseState(&x,&y);
             cout << x << ',' << y  << '\n';
-            if ( 11<=x && x<=379 && 305<=y && y<=358){
-                LoadMedia(14,0,0);
-                LoadMedia(15,115,303);
+            if ( 119<=x && x<=379 && 305<=y && y<=358){
+                LoadMedia(17,0,0);
+                LoadMedia(18,115,303);
                 if (e.type == SDL_MOUSEBUTTONDOWN) {
-                        startgame(a,e);
+                        startgame();
                         return;
                 }
             }
             else if (119<=x && x<=379 && 389<=y && y<=444){
-                LoadMedia(14,0,0);
-                LoadMedia(16,115,389);
+                LoadMedia(17,0,0);
+                LoadMedia(19,115,389);
             }
             else if (119<=x && x<=379 && 477<=y && y<=530){
-                LoadMedia(14,0,0);
-                LoadMedia(17,115,475);
+                LoadMedia(17,0,0);
+                LoadMedia(20,115,475);
                 if (e.type == SDL_MOUSEBUTTONDOWN) return;
             }
             else {
                 SDL_RenderClear(renderer);
-                LoadMedia(14,0,0);
+                LoadMedia(17,0,0);
             }
         SDL_RenderPresent(renderer);
        }
@@ -463,13 +510,8 @@ void start(int **&a, SDL_Event e){
 int main(int argc, char* argv[])
 {
     srand (time(NULL));
-
-    initSDL(window, renderer, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE);
-    int** a= new int*[4];
-    for(int i=0; i<4; i++)
-        *(a+i)= new int[4];
-    SDL_Event e;
-    start(a,e);
+    start();
     quitSDL(window, renderer);
     return 0;
 }
+
